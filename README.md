@@ -1,14 +1,16 @@
 #  Análisis de datos de RNA-Seq con R/Bioconductor
 
-Especialidad en Bioinformática - Universidad Nacional de Rosario
-Fecha: 28 y 29 de septiembre de 2026
-Lugar: Rosario, Argentina
+## Especialidad en Bioinformática - Universidad Nacional de Rosario
+
+### 📅 Fecha: 28 y 29 de septiembre de 2026
+
+### 📍 Localización: facultad de ciencias Agrarias, UNR Zavalla, Argentina
 
 # Descripción
 
 Este curso combina fundamentos teóricos de RNA-Seq con práctica intensiva en el análisis, control de calidad e interpretación de datos de expresión génica. Está organizado en dos días, cubriendo desde la generación y control de calidad de los datos crudos hasta el análisis estadístico de expresión diferencial y su visualización.
 
-# Requisitos previos
+# ✅ Requisitos Previos
 
 - Conocimientos de biología molecular (transcripción, expresión génica), de estadística básica
 y fluencia con R/RStudio
@@ -56,6 +58,9 @@ BiocManager::install(c(
 
   
 
+
+## 🗓️ Agenda
+
 # Contenido del curso
 
 ## Día 1: Fundamentos de RNA-SEQ. Repaso R/RStudio,Bioconductor
@@ -63,8 +68,7 @@ BiocManager::install(c(
 * Sesión 1: Introducción general
 * Sesión 2: Fundamentos de las tecnologías de secuenciación aplicadas al estudio del ARN
 * Sesión 3: Bioinformática para RNAseq. Análisis e interpretación de control de calidad de un protocolo típico de RNA-Seq 
-* Repaso de R/Bioconductor. OpenSciene, reportes MD
-* [Sesión 4](s4.2.Rmd)
+* [Sesión 4](s4.2.Rmd): Repaso de R/Bioconductor. OpenSciene, protocolos FAIR, reportes MD
 
 ## Día 2: Análisis de datos de RNA-Seq con R/Bioconductor
 * [Sesión 5](s5.Rmd): Diseño experimental y control de calidad inicial 
@@ -72,7 +76,7 @@ BiocManager::install(c(
 * [Sesión 7](s7.Rmd): Pruebas de expresión diferencial
 * [Sesión 8](s7.Rmd): Enriquecimiento de conjuntos de genes y herramientas de visualización
 
-# Objetivos de aprendizaje
+# 🎯 Objetivos de aprendizaje
 
 Al finalizar el curso, los participantes serán capaces de:
 
@@ -84,7 +88,22 @@ Al finalizar el curso, los participantes serán capaces de:
 6. Realizar análisis de expresión diferencial utilizando R/Bioconductor.
 7. Aplicar herramientas de enriquecimiento de conjuntos de genes y visualizar resultados.
 
+# 📖 Bibliografía
+- https://www.frontiersin.org/journals/genetics/articles/10.3389/fgene.2025.1697922/full
+- https://www.frontiersin.org/journals/genetics/articles/10.3389/fgene.2025.1697922/full
+- https://www.nature.com/articles/s41576-019-0150-2
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC3904521/pdf/btt688.pdf
+- https://link.springer.com/article/10.1186/s13059-016-0881-8
+- FAIR: https://www.cell.com/current-biology/fulltext/S0960-9822(23)00668-1
+- https://www.nature.com/articles/sdata201618
 
-# Contacto
+# 📚 Lecturas Recomendadas
+
+
+- Open and sustainable AI: challenges, opportunities and the road ahead in the life sciences
+- Rethinking bioinformatics expertise in the era of artificial intelligence
+
+
+# ✉️ Contacto
 
 Para dudas o comentarios sobre el curso, contactar a contact@estepi.com
