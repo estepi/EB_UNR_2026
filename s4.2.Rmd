@@ -1,0 +1,87 @@
+---
+title: "Sesión 4.2: Repaso R/Bioconductor. Reportes en Markdown"
+subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+author:
+  - name: "Estefania Mancini"
+    orcid: "0000-0002-7308-1273"
+    email: "contact@estepi.com"
+date: "2026-09"
+lang: es
+keywords:
+  - RNA-Seq
+  - Bioconductor
+  - Transcriptómica
+  - FAIR
+license: "GNU General Public License v3.0"
+repository: "https://gitlab.com/estepi/BIO_UNR_2026"
+doi: ""
+version: "1.0.0"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    number_sections: true
+    code_folding: hide
+    code_download: true
+    df_print: paged
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    number_sections: true
+    latex_engine: xelatex
+params:
+  fecha_ejecucion: !r Sys.Date()
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Definir el directorio de trabajo
+
+
+```{r setwd, eval=FALSE}
+setwd("~/Documentos/UNR/BIO_UNR_2026/")
+```
+
+#  Crear subdirectorios
+
+```{r dircreate, eval=FALSE}
+dir.create("data")
+dir.create("scripts")
+dir.create("reportes")
+```
+
+# Verificar que los paquetes necesarios están instalados
+
+  
+```{r libraries, message=FALSE, echo=FALSE, include=FALSE, warning=FALSE}
+library(DESeq2)
+library(PCAtools)
+library(sva)
+library(ggplot2)
+library(pheatmap)
+library(edgeR)
+library(tidyverse)
+library(SummarizedExperiment)
+library(ExploreModelMatrix)
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+library(org.Mm.eg.db)
+library(DESeq2)
+library(vsn)
+library(ComplexHeatmap)
+library(RColorBrewer)
+library(hexbin)
+library(kableExtra)
+library(gplots)
+library(simplifyEnrichment)
+library(Biostrings)
+```

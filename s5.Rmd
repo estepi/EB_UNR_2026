@@ -1,0 +1,155 @@
+---
+title: "Sesion 5: Diseño experimental y control de calidad inicial"
+subtitle: Diseño experimental y control de calidad
+author: " Estefania Mancini"
+date: "2026 - 09 - 28"
+output: 
+  html_document:
+    number_sections: true
+    code_folding: hide
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Configuración inicial
+
+```{r install, eval=FALSE}
+suppressPackageStartupMessages({
+    library(AnnotationDbi)
+    library(org.Mm.eg.db)
+    library(hgu95av2.db)
+    library(SummarizedExperiment)
+})
+```
+
+# Cargamos counrt data
+
+
+```{r importdata, eval=FALSE}
+setwd("~/Documentos/UNR/BIO_UNR_2026/")
+counts <- read.csv("data/", 
+                   row.names = 1)
+dim(counts)
+
+coldata <- read.csv("data/",
+                    row.names = 1)
+dim(coldata)
+
+```
+
+# Controlamos que todas las muestras tengan asociada su metadata:
+
+```{r checkdata, eval=FALSE}
+all.equal(colnames(counts), rownames(coldata)) # samples
+all.equal(rownames(counts), rownames(rowranges)) # genes
+tempindex <- match(colnames(counts), rownames(coldata))
+coldata <- coldata[tempindex, ]
+
+
+stopifnot(rownames(rowranges) == rownames(counts), # features
+          rownames(coldata) == colnames(counts)) # samples
+```
+
+# Creamos el objeto **SummarizedExperiment**
+
+```{r se, eval=FALSE}
+
+se <- SummarizedExperiment(
+  assays = list(counts = as.matrix(counts)),
+  rowRanges = as(rowranges, "GRanges"),
+  colData = coldata
+)
+
+```
+
+- qué tipo de onjeto es?
+- qué elementos lo componen? _slots_
+
+# Verificamos el objeto con los counts
+
+- accesores de objetos 
+
+```{r accesscounts, eval=FALSE}
+head(assay(se))
+dim(assay(se))
+head(assay(se, "counts"))
+```
+
+
+# Verificamos la metadata asociada:
+
+```{r accessannotations, eval=FALSE}
+colData(se)
+dim(colData(se))
+```
+
+# Accedemos a las anoteaciones de los genes
+
+```{r accessgeneannotations, eval=FALSE}
+head(rowData(se))
+dim(rowData(se))
+```
+
+
+# Simplificamos las etiquetas de las muestas:
+
+```{r samplelabelling, eval=FALSE}
+se$Label <- paste(se$sex, se$time, se$mouse, sep = "_")
+colnames(se) <- se$Label
+se$Group <- paste(se$sex, se$time, sep = "_")
+se$Group
+```
+
+
+# Factorizamos con los niveles ordenados
+
+- por qué ?
+
+
+```{r sampleFactoring, eval=FALSE}
+
+se$Group <- factor(se$Group, levels = c("Female_Day0","Male_Day0", 
+                                        "Female_Day4","Male_Day4",
+                                        "Female_Day8","Male_Day8"))
+se <- se[, order(se$Group)]
+colData(se)
+```
+
+
+# Factor the Label column to keep in order in plots:
+
+```{r labelFactoring, eval=FALSE}
+se$Label <- factor(se$Label, levels = se$Label)
+```
+
+# Guardamos el objeto  **SummarizedExperiment**
+
+- por qué?
+
+```{r save, eval=FALSE}
+saveRDS(se, "data/GSE96870_se.rds")
+```
+
+# Agregamos las anotaciones en otros formatos
+
+- para qué?
+
+```{r geneannot, eval=FALSE}
+
+mapIds(org.Mm.eg.db, keys = "497097", column = "SYMBOL", keytype = "ENTREZID")
+
+keys <- head(keys(hgu95av2.db, "ENTREZID"))
+last <- function(x){x[[length(x)]]}
+
+mapIds(hgu95av2.db, keys = keys, column = "ALIAS", keytype = "ENTREZID")
+mapIds(hgu95av2.db, keys = keys, column = "ALIAS", keytype = "ENTREZID", multiVals = last)
+mapIds(hgu95av2.db, keys = keys, column = "ALIAS", keytype = "ENTREZID", multiVals = "list")
+```

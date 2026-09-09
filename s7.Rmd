@@ -1,0 +1,108 @@
+---
+title: "RNA-seq analysis with Bioconductor - DGE"
+author: "Estefania Mancini"
+output: 
+  html_document:
+    number_sections: true
+    code_folding: hide
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    toc: yes
+  pdf_document:
+    toc: yes
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+    library(SummarizedExperiment)
+    library(DESeq2)
+    library(ggplot2)
+    library(ExploreModelMatrix)
+    library(cowplot)
+    library(ComplexHeatmap)
+    library(apeglm)
+})
+```
+
+# DGE
+
+## Load data
+
+```{r libraries}
+setwd("~/Documentos/bio_rnaseq/")
+se <- readRDS("data/GSE96870_se.rds")
+se <- se[rowSums(assay(se, "counts")) > 5, ]
+dds <- DESeq2::DESeqDataSet(se,
+                            design = ~ sex + time)
+```
+
+
+## Normalization and modelling
+
+```{r dset}
+dds <- estimateSizeFactors(dds)
+dds <- estimateDispersions(dds)
+plotDispEsts(dds)
+```
+
+
+# Test
+
+
+```{r test}
+dds <- nbinomWaldTest(dds)
+## Day 8 vs Day 0
+resTime <- results(dds, contrast = c("time", "Day8", "Day0"))
+summary(resTime)
+
+# View(resTime)
+head(resTime[order(resTime$pvalue), ])
+plotMA(resTime)
+```
+
+## Independent Filtering and log-fold shrinkag
+
+```{r shringakage}
+resTimeLfc <- lfcShrink(dds, coef = "time_Day8_vs_Day0", res = resTime)
+plotMA(resTimeLfc)
+```
+
+## Visualize selected set of genes
+
+```{r vsd}
+# Transform counts
+vsd <- vst(dds, blind = TRUE)
+
+# Get top DE genes
+genes <- resTime[order(resTime$pvalue), ] |>
+         head(10) |>
+         rownames()
+heatmapData <- assay(vsd)[genes, ]
+
+# Scale counts for visualization
+heatmapData <- t(scale(t(heatmapData)))
+
+# Add annotation
+heatmapColAnnot <- data.frame(colData(vsd)[, c("time", "sex")])
+heatmapColAnnot <- HeatmapAnnotation(df = heatmapColAnnot)
+
+# Plot as heatmap
+ComplexHeatmap::Heatmap(heatmapData,
+                        top_annotation = heatmapColAnnot,
+                        cluster_rows = TRUE, cluster_columns = FALSE)
+```
+
+## Save res:
+
+```{r save}
+head(as.data.frame(resTime))
+head(as.data.frame(rowRanges(se)))
+
+temp <- cbind(as.data.frame(rowRanges(se)),
+              as.data.frame(resTime))
+write.csv(temp, file = "output/Day8vsDay0.csv")
+```
