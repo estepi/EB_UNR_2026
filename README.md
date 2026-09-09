@@ -46,6 +46,9 @@ install.packages(c(
   - vsn
   - ComplexHeatmap
   - simplifyEnrichment
+  - GSEABase
+  - apeglm
+  - clusterProfiler
 
 ```r
 if (!require("BiocManager", quietly = TRUE))
@@ -74,7 +77,7 @@ BiocManager::install(c(
 * [Sesión 5](s5.Rmd): Diseño experimental y control de calidad inicial 
 * [Sesión 6](s6.Rmd): Normalización y transformación de datos 
 * [Sesión 7](s7.Rmd): Pruebas de expresión diferencial
-* [Sesión 8](s7.Rmd): Enriquecimiento de conjuntos de genes y herramientas de visualización
+* [Sesión 8](s8.Rmd): Enriquecimiento de conjuntos de genes y herramientas de visualización
 
 # 🎯 Objetivos de aprendizaje
 

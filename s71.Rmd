@@ -1,0 +1,299 @@
+---
+title: "Sesión 7: Genes diferencialmente expresados"
+subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+author:
+  - name: "Estefania Mancini"
+    orcid: "0000-0002-7308-1273"
+    email: "contact@estepi.com"
+date: "2026-09"
+lang: es
+keywords:
+  - RNA-Seq
+  - Bioconductor
+  - Transcriptómica
+  - FAIR
+  - OpenScience
+license: "GNU General Public License v3.0"
+repository: "https://github.com/estepi/EB_UNR_2026"
+doi: ""
+version: "1.0.0"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    number_sections: true
+    code_folding: hide
+    code_download: true
+    df_print: paged
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    number_sections: true
+    latex_engine: xelatex
+params:
+  fecha_ejecucion: !r Sys.Date()
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Configuracion inicial
+
+## Definir el directorio de trabajo
+
+
+```{r setwd}
+setwd("~/Documents/UNR/EB_UNR_2026/")
+```
+
+## Cargamos los paquetes que utilizamos en esta sesión:
+
+```{r libraries}
+library(DESeq2)
+library(SummarizedExperiment)
+library(ggplot2)
+library(vsn)
+library(ComplexHeatmap)
+library(RColorBrewer)
+```
+
+## Load SE
+
+```{r loadse}
+se <- readRDS("data/GSE96870_se.rds")
+dim(se)
+```
+
+
+# The DESeqDataSet: Create DESeqDataSet
+
+```{r deseq}
+dds <- DESeq2::DESeqDataSet(se,
+                            design = ~ gender + Time)
+```
+
+## Design matrix
+
+```{r modelmatrix}
+
+design(dds)
+model.matrix(~ gender + Time , colData(se))
+
+
+```
+
+```{r modelmatrix0}
+model.matrix(~ 0+ gender + Time , colData(se))
+```
+
+## Only gender
+
+```{r modelgender}
+model.matrix(~ gender , colData(se))
+```
+
+# Library sizes and compositional effects
+
+```{r sizefactor}
+dds <- estimateSizeFactors(dds)
+head(dds$sizeFactor)
+head(dds$libSize)
+```
+
+# Dispersion
+
+```{r dispersion, message=T}
+dds <- estimateDispersions(dds)
+```
+
+```{r dispersionplot}
+plotDispEsts(dds)
+
+png("plotDisp.png")
+plotDispEsts(dds)
+dev.off()     
+
+```
+
+# DGE Testing
+
+```{r testing}
+dds <- nbinomWaldTest(dds)
+```
+
+```{r testingfast, message=TRUE}
+ddsFAST <- DESeq(dds)
+```
+
+
+# Explore results 
+
+## Explore results for specific contrasts
+
+### Day 8 vs Day 0
+
+```{r restime}
+resTime <- results(dds, 
+                   contrast = c("Time", "Day8", "Day0"))
+summary(resTime)
+class(resTime)
+
+```
+
+```{r reshelp, message=T}
+?results
+```
+
+## View(resTime)
+
+```{r viewrestime}
+
+head(resTime[order(resTime$pvalue), ])
+
+
+```
+
+
+## Plot MA
+
+```{r plotMA}
+
+plotMA(resTime)
+
+png("plotMA.png")
+plotMA(resTime)
+dev.off()     
+
+```
+
+## LFC = 1
+
+### Day 8 vs Day 0
+
+```{r restimelfc1}
+resTimelfc1 <- results(dds, 
+                   contrast = c("Time", "Day8", "Day0"),
+                    lfcThreshold = 1)
+summary(resTimelfc1)
+```
+
+
+```{r plotMAlfc1}
+
+
+plotMA(resTimelfc1)
+
+png("plotMAlfc1.png")
+plotMA(resTimelfc1)
+dev.off()     
+
+```
+
+
+## Shrinkage
+
+```{r shrinkage}
+resTimeLfc <- lfcShrink(dds, coef = "Time_Day8_vs_Day0", res = resTime)
+```
+
+```{r MAshrinkage}
+png("plotMAshrinkage.png")
+plotMA(resTimeLfc)
+dev.off()
+```
+
+## No filtering low expressed
+
+```{r nofilter}
+resTimelnofilter <- results(dds, 
+                   contrast = c("Time", "Day8", "Day0"),
+                    independentFiltering = FALSE          )
+summary(resTimelnofilter)
+```
+
+```{r plotMAnofilter}
+png("plotMAnof.png")
+plotMA(resTimelnofilter)
+dev.off()
+```
+
+# Visualize selected set of genes
+
+## Transform counts
+
+```{r vsd}
+vsd <- vst(dds, blind = TRUE)
+```
+
+
+## Get top 10 DE genes
+
+```{r top10}
+genes <- resTime[order(resTime$pvalue), ] |>
+         head(10) |>
+         rownames()
+heatmapData <- assay(vsd)[genes, ]
+```
+
+
+## Scale counts for visualization
+
+```{r scale}
+heatmapData <- t(scale(t(heatmapData)))
+```
+
+## Add annotation
+
+```{r annot}
+heatmapColAnnot <- data.frame(colData(vsd)[, c("Time", "gender")])
+heatmapColAnnot <- HeatmapAnnotation(df = heatmapColAnnot)
+```
+
+## Plot as heatmap
+
+```{r heatmap}
+ComplexHeatmap::Heatmap(heatmapData,
+                        top_annotation = heatmapColAnnot,
+                        cluster_rows = TRUE, cluster_columns = FALSE)
+
+```
+
+```{r plotheatmap}
+png("heatmap1.png", width = 700, height = 500, units = "px")
+ComplexHeatmap::Heatmap(heatmapData,
+                        top_annotation = heatmapColAnnot,
+                        cluster_rows = TRUE, cluster_columns = FALSE)
+dev.off()
+```
+
+# Save results
+
+```{r results}
+temp <- as.data.frame(resTime)
+write.csv(temp, file = "data/Day8vsDay0.csv")
+```
+
+```{r resultsTime}
+resTime <- DESeq2::results(dds, contrast = c("Time", "Day8", "Day0"))
+timeDE <- as.data.frame(subset(resTime, 
+                               padj < 0.05 & abs(log2FoldChange) > log2(1.5)
+                       ))
+timeDEgenes <- rownames(timeDE)
+head(timeDEgenes)
+write.csv(timeDEgenes, file="data/timeDEgenes.csv")
+```
+
+
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```

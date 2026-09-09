@@ -1,0 +1,241 @@
+---
+title: "Sesión 8: Significado biológico de genes diferencialmente expresados"
+subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+author:
+  - name: "Estefania Mancini"
+    orcid: "0000-0002-7308-1273"
+    email: "contact@estepi.com"
+date: "2026-09"
+lang: es
+keywords:
+  - RNA-Seq
+  - Bioconductor
+  - Transcriptómica
+  - FAIR
+  - OpenScience
+license: "GNU General Public License v3.0"
+repository: "https://github.com/estepi/EB_UNR_2026"
+doi: ""
+version: "1.0.0"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    number_sections: true
+    code_folding: hide
+    code_download: true
+    df_print: paged
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    number_sections: true
+    latex_engine: xelatex
+params:
+  fecha_ejecucion: !r Sys.Date()
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Configuracion inicial
+
+## Definir el directorio de trabajo
+
+
+```{r setwd}
+setwd("~/Documents/UNR/EB_UNR_2026/")
+```
+
+
+# Gene set enrichment analysis
+
+```{r libraries}
+library(org.Mm.eg.db)
+library(GSEABase)
+library(clusterProfiler)
+library(enrichplot)
+library(ggplot2)
+library(simplifyEnrichment)
+library(DESeq2)
+```
+
+## Org Db library
+
+```{r orglibraries}
+library(org.Mm.eg.db)
+keytypes(org.Mm.eg.db)
+```
+
+## Ectract timeDEgenes
+
+```{r loadse}
+
+setwd("~/Documents/UNR/EB_UNR_2026/")
+se <- readRDS("data/GSE96870_se.rds")
+dds <- DESeq2::DESeqDataSet(se,
+                            design = ~ gender + Time)
+dds<-DESeq(dds)
+
+resTime <- DESeq2::results(dds, contrast = c("Time", "Day8", "Day0"))
+timeDE <- as.data.frame(subset(resTime, 
+                               padj < 0.05 & abs(log2FoldChange) > log2(1.5)
+))
+
+timeDEgenes <- rownames(timeDE)
+head(timeDEgenes)
+```
+
+# Perform enrichment tests
+
+## **enrichGO**
+
+
+```{r restimeGO}
+resTimeGO = enrichGO(gene = timeDEgenes, 
+                     keyType = "ENSEMBL",
+                     ont = "BP", 
+                     OrgDb = org.Mm.eg.db,
+                     pvalueCutoff = 1,
+                     qvalueCutoff = 1)
+```
+
+```{r restimeGOtable}
+resTimeGOTable = as.data.frame(resTimeGO)
+head(resTimeGOTable)
+```
+
+## **enrichKEGG**
+
+###  Map to gene Ids
+
+```{r map2entrez}
+EntrezIDs = mapIds(org.Mm.eg.db, 
+                   keys = timeDEgenes, 
+                   keytype = "ENSEMBL", 
+                   column = "ENTREZID",
+                   multiVals = "first")
+head(EntrezIDs)
+```
+
+
+```{r map2KEGG}
+resTimeKEGG = enrichKEGG(gene = EntrezIDs, 
+                         organism = "mmu",
+                         pvalueCutoff = 1,
+                         qvalueCutoff = 1)
+```
+
+```{r map2KEGGtable}
+resTimeKEGGTable = as.data.frame(resTimeKEGG)
+head(resTimeKEGGTable)
+```
+
+# Visualization tools
+
+## Bar plot
+
+```{r restimePlot1}
+barplot(resTimeGO, showCategory = 20)
+
+png("GObarplot.png",width = 700, height = 500, units = "px")
+barplot(resTimeGO, showCategory = 20)
+dev.off()
+
+```
+
+## Dot plot
+```{r restimePlot2}
+dotplot(resTimeGO, showCategory = 20)
+
+png("GOdotplot.png",width = 700, height = 500, units = "px")
+dotplot(resTimeGO, showCategory = 20)
+dev.off()
+
+```
+
+
+## Enrich terms:
+
+```{r enrichterms}
+n_11 = resTimeGOTable$Count
+head(n_11)
+n_10 = length(intersect(resTimeGO@gene, resTimeGO@universe))
+n_01 = as.numeric(gsub("/.*$", "", resTimeGOTable$BgRatio))
+n = length(resTimeGO@universe)
+
+resTimeGOTable$DE_Ratio = n_11/n_01
+resTimeGOTable$GS_size = n_01  # size of gene sets
+resTimeGOTable$log2_Enrichment = log( (n_11/n_10)/(n_01/n) )
+hyper_mean = n_01*n_10/n
+
+n_02 = n - n_01
+n_20 = n - n_10
+hyper_var = n_01*n_10/n * n_20*n_02/n/(n-1)
+resTimeGOTable$zScore = (n_11 - hyper_mean)/sqrt(hyper_var)
+```
+
+## Ggplot 1
+
+```{r goplot1}
+ggplot(resTimeGOTable[1:10, ], 
+       aes(x = log2_Enrichment, y = factor(Description, levels = rev(Description)), 
+           fill = DE_Ratio)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(x = log2_Enrichment, 
+                label = sprintf("%.2e", p.adjust)), hjust = 1, col = "white") +
+  ylab("")
+```
+
+
+## Ggplot 2
+
+```{r goplot2}
+
+ggplot(resTimeGOTable[1:10, ], 
+       aes(x = zScore, y = factor(Description, levels = rev(Description)), 
+           col = DE_Ratio, size = Count)) +
+  geom_point() +
+  ylab("")
+```
+
+## Ggplot 3
+
+```{r goplot3}
+ggplot(resTimeGOTable, 
+       aes(x = log2_Enrichment, y = -log10(p.adjust), 
+           color = DE_Ratio, size = GS_size)) +
+  geom_point() +
+  geom_hline(yintercept = -log10(0.01), lty = 2, col = "#444444") +
+  geom_vline(xintercept = 1.5, lty = 2, col = "#444444")
+
+```
+
+
+
+# Simplify 
+
+```{r simplify}
+GO_ID = resTimeGOTable$ID[resTimeGOTable$p.adjust < 0.1]
+simplifyGO(GO_ID)
+
+png("simplify.png",   width = 700, height = 500, units = "px")
+simplifyGO(GO_ID)
+dev.off()
+
+```
+
+
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```
