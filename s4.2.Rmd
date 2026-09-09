@@ -12,8 +12,9 @@ keywords:
   - Bioconductor
   - Transcriptómica
   - FAIR
+  - OpenScience
 license: "GNU General Public License v3.0"
-repository: "https://gitlab.com/estepi/BIO_UNR_2026"
+repository: "https://github.com/estepi/EB_UNR_2026"
 doi: ""
 version: "1.0.0"
 output:
@@ -47,15 +48,14 @@ knitr::opts_chunk$set(echo = TRUE)
 # Definir el directorio de trabajo
 
 
-```{r setwd, eval=FALSE}
-setwd("~/Documentos/UNR/BIO_UNR_2026/")
+```{r setwd}
+setwd("~/Documents/UNR/EB_UNR_2026/")
 ```
 
 #  Crear subdirectorios
 
-```{r dircreate, eval=FALSE}
+```{r dircreate, eval=TRUE}
 dir.create("data")
-dir.create("scripts")
 dir.create("reportes")
 ```
 

@@ -5,3 +5,6 @@
 # Output files
 *.html
 *.pptx
+#folders 
+data
+reportes

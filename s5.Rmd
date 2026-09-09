@@ -1,19 +1,46 @@
 ---
-title: "Sesion 5: Diseño experimental y control de calidad inicial"
-subtitle: Diseño experimental y control de calidad
-author: " Estefania Mancini"
-date: "2026 - 09 - 28"
-output: 
+title: "Sesión 5: Diseño experimental y control de calidad inicial"
+subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+author:
+  - name: "Estefania Mancini"
+    orcid: "0000-0002-7308-1273"
+    email: "contact@estepi.com"
+date: "2026-09"
+lang: es
+keywords:
+  - RNA-Seq
+  - Bioconductor
+  - Transcriptómica
+  - FAIR
+  - OpenScience
+license: "GNU General Public License v3.0"
+repository: "https://github.com/estepi/EB_UNR_2026"
+doi: ""
+version: "1.0.0"
+output:
   html_document:
+    theme: flatly
+    highlight: tango
     number_sections: true
     code_folding: hide
+    code_download: true
+    df_print: paged
     fig_caption: yes
     fig_height: 10
     fig_width: 10
     toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
   pdf_document:
     toc: yes
+    number_sections: true
+    latex_engine: xelatex
+params:
+  fecha_ejecucion: !r Sys.Date()
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -21,16 +48,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Configuración inicial
 
-```{r install, eval=FALSE}
-suppressPackageStartupMessages({
-    library(AnnotationDbi)
-    library(org.Mm.eg.db)
-    library(hgu95av2.db)
-    library(SummarizedExperiment)
-})
-```
 
-# Cargamos counrt data
+# Cargamos counts data
 
 
 ```{r importdata, eval=FALSE}
