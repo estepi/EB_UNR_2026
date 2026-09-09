@@ -3,7 +3,5 @@
 .RData
 .Ruserdata
 # Output files
-dia1_files/
-outline_files/
 *.html
 *.pptx
