@@ -25,6 +25,7 @@ y fluencia con R/RStudio
   - hexbin
   - kableExtra
   - gplots
+  - Cairo
 
 ```r
 install.packages(c(
