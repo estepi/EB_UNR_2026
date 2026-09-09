@@ -48,42 +48,54 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Configuración inicial
 
+## Cargamos los paquetes que utilizamos en esta sesión:
+
+  
+```{r libraries}
+library(DESeq2)
+library(org.Mm.eg.db)
+```
+
+## Definir el directorio de trabajo
+
+
+```{r setwd}
+setwd("~/Documents/UNR/EB_UNR_2026/")
+```
 
 # Cargamos counts data
 
 
-```{r importdata, eval=FALSE}
-setwd("~/Documentos/UNR/BIO_UNR_2026/")
-counts <- read.csv("data/", 
-                   row.names = 1)
+```{r importdata}
+counts <- read.table("data/GSE96870_salmon.merged.gene_counts.tsv", 
+                   row.names = 1, header = T)
 dim(counts)
+counts$gene_name<-NULL
 
-coldata <- read.csv("data/",
+coldataAll <- read.csv("data/GSE96870_SraRunTable.csv",
                     row.names = 1)
-dim(coldata)
-
+head(coldataAll)
+dim(coldataAll)
+coldataAll$Time<-gsub("Day ", "Day",coldataAll$Time)
 ```
 
 # Controlamos que todas las muestras tengan asociada su metadata:
 
-```{r checkdata, eval=FALSE}
-all.equal(colnames(counts), rownames(coldata)) # samples
-all.equal(rownames(counts), rownames(rowranges)) # genes
-tempindex <- match(colnames(counts), rownames(coldata))
-coldata <- coldata[tempindex, ]
-
-
-stopifnot(rownames(rowranges) == rownames(counts), # features
-          rownames(coldata) == colnames(counts)) # samples
+```{r checkdata}
+match(colnames(counts), coldataAll$Experiment) 
+# samples
+tempindex <- match(colnames(counts), coldataAll$Experiment)
+coldata <- coldataAll[tempindex, ]
+rownames(coldata)<-coldata$Experiment
+all.equal(colnames(counts), rownames(coldata)) 
 ```
 
 # Creamos el objeto **SummarizedExperiment**
 
-```{r se, eval=FALSE}
+```{r se}
 
 se <- SummarizedExperiment(
   assays = list(counts = as.matrix(counts)),
-  rowRanges = as(rowranges, "GRanges"),
   colData = coldata
 )
 
@@ -96,23 +108,22 @@ se <- SummarizedExperiment(
 
 - accesores de objetos 
 
-```{r accesscounts, eval=FALSE}
+```{r accesscounts}
 head(assay(se))
 dim(assay(se))
-head(assay(se, "counts"))
 ```
 
 
 # Verificamos la metadata asociada:
 
-```{r accessannotations, eval=FALSE}
-colData(se)
+```{r accessannotations}
+colnames(colData(se))
 dim(colData(se))
 ```
 
 # Accedemos a las anoteaciones de los genes
 
-```{r accessgeneannotations, eval=FALSE}
+```{r accessgeneannotations}
 head(rowData(se))
 dim(rowData(se))
 ```
@@ -120,11 +131,14 @@ dim(rowData(se))
 
 # Simplificamos las etiquetas de las muestas:
 
-```{r samplelabelling, eval=FALSE}
-se$Label <- paste(se$sex, se$time, se$mouse, sep = "_")
+```{r samplelabelling}
+
+se$Label <- paste(se$gender, paste(se$Time, se$mouse_id, sep = "_"), sep="_")
 colnames(se) <- se$Label
-se$Group <- paste(se$sex, se$time, sep = "_")
-se$Group
+head(se$Label)
+
+se$Group <- paste(se$gender, se$Time, sep = "_")
+head(se$Group)
 ```
 
 
@@ -133,11 +147,11 @@ se$Group
 - por qué ?
 
 
-```{r sampleFactoring, eval=FALSE}
+```{r sampleFactoring}
 
-se$Group <- factor(se$Group, levels = c("Female_Day0","Male_Day0", 
-                                        "Female_Day4","Male_Day4",
-                                        "Female_Day8","Male_Day8"))
+se$Group <- factor(se$Group, levels = c("female_Day0","male_Day0", 
+                                        "female_Day4","male_Day4",
+                                        "female_Day8","male_Day8"))
 se <- se[, order(se$Group)]
 colData(se)
 ```
@@ -145,7 +159,7 @@ colData(se)
 
 # Factor the Label column to keep in order in plots:
 
-```{r labelFactoring, eval=FALSE}
+```{r labelFactoring}
 se$Label <- factor(se$Label, levels = se$Label)
 ```
 
@@ -153,7 +167,7 @@ se$Label <- factor(se$Label, levels = se$Label)
 
 - por qué?
 
-```{r save, eval=FALSE}
+```{r save}
 saveRDS(se, "data/GSE96870_se.rds")
 ```
 
@@ -161,14 +175,9 @@ saveRDS(se, "data/GSE96870_se.rds")
 
 - para qué?
 
-```{r geneannot, eval=FALSE}
+```{r geneannot, eval=TRUE}
 
 mapIds(org.Mm.eg.db, keys = "497097", column = "SYMBOL", keytype = "ENTREZID")
 
-keys <- head(keys(hgu95av2.db, "ENTREZID"))
-last <- function(x){x[[length(x)]]}
 
-mapIds(hgu95av2.db, keys = keys, column = "ALIAS", keytype = "ENTREZID")
-mapIds(hgu95av2.db, keys = keys, column = "ALIAS", keytype = "ENTREZID", multiVals = last)
-mapIds(hgu95av2.db, keys = keys, column = "ALIAS", keytype = "ENTREZID", multiVals = "list")
 ```
