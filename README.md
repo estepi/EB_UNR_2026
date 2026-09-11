@@ -106,7 +106,11 @@ Al finalizar el curso, los participantes serán capaces de:
 
 - Open and sustainable AI: challenges, opportunities and the road ahead in the life sciences
 - Rethinking bioinformatics expertise in the era of artificial intelligence
-
+- DESeq2 vignette 
+- RNA-seq workflow: gene-level exploratory analysis and differential expression
+- edgeR Users Guide , edgeR vignette
+- Introduction to DGE - normalization 
+- RNA-Seq analysis with R/Bioconductor - Carpentries 
 
 # ✉️ Contacto
 
