@@ -54,7 +54,7 @@ setwd("~/Documents/UNR/EB_UNR_2026/")
 
 #  Crear subdirectorios
 
-```{r dircreate, eval=TRUE}
+```{r dircreate}
 dir.create("data")
 dir.create("reportes")
 ```
@@ -62,7 +62,7 @@ dir.create("reportes")
 # Verificar que los paquetes necesarios están instalados
 
   
-```{r libraries, message=FALSE, echo=FALSE, include=FALSE, warning=FALSE}
+```{r libraries, message=FALSE, warning=FALSE,echo=TRUE}
 library(DESeq2)
 library(PCAtools)
 library(sva)
@@ -85,3 +85,13 @@ library(gplots)
 library(simplifyEnrichment)
 library(Biostrings)
 ```
+
+# Tip: compilar el reporte con diferentes opciones de *code chunks*
+
+
+  
+```
+{ r libraries, message=FALSE, warning=FALSE, echo=TRUE, eval=FALSE}
+``` 
+
+

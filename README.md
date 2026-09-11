@@ -4,11 +4,11 @@
 
 ### 📅 Fecha: 28 y 29 de septiembre de 2026
 
-### 📍 Localización: facultad de ciencias Agrarias, UNR Zavalla, Argentina
+### 📍 Localización: Facultad de ciencias Agrarias, UNR Zavalla, Argentina
 
 # Descripción
 
-Este curso combina fundamentos teóricos de RNA-Seq con práctica intensiva en el análisis, control de calidad e interpretación de datos de expresión génica. Está organizado en dos días, cubriendo desde la generación y control de calidad de los datos crudos hasta el análisis estadístico de expresión diferencial y su visualización.
+Este curso combina fundamentos teóricos de RNA-Seq con práctica intensiva en el control de calidad, análisis e interpretación de datos de expresión génica. Está organizado en dos días, cubriendo desde la generación y control de calidad de los datos crudos hasta el análisis estadístico de expresión diferencial y su visualización.
 
 # ✅ Requisitos Previos
 
