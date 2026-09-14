@@ -44,6 +44,7 @@ params:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 # Configuracion inicial
 
 ## Definir el directorio de trabajo
@@ -52,10 +53,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r setwd}
 setwd("~/Documents/UNR/EB_UNR_2026/")
 ```
+
 ## Cargamos los paquetes que utilizamos en esta sesión:
 
 
-```{r libraries}
+```{r libraries, warning=FALSE, message=FALSE}
 library(DESeq2)
 library(SummarizedExperiment)
 library(ggplot2)
@@ -63,43 +65,40 @@ library(vsn)
 library(ComplexHeatmap)
 library(RColorBrewer)
 library(PCAtools)
+library(vsn)
 ```
 
-## Load SE
+## Cargamos el objeto SE
 
 ```{r loadse}
 se <- readRDS("data/GSE96870_se.rds")
 ```
 
+## Verificamos las dimensiones
 
 ```{r totalgenes}
-nrow(se)
+dim(se)
 ```
 
 
-## Negative binomial distribution
+# Distribución binomial negativa
 
 \url{https://hbctraining.github.io/DGE_workshop_salmon/lessons/01_DGE_setup_and_overview.html}
 
-```{r nb}
+```{r nb, warning=FALSE, message=FALSE}
 counts<-assay(se) 
-
 plot0<-ggplot(counts) +
   geom_histogram(aes(x = female_Day0_9), stat = "bin", bins = 200)+
   xlab("Raw expression counts") +
   ylab("Number of genes")+
   theme_bw()
-
-ggsave(filename = "reads0.png" , 
-       plot = plot0, 
-       width = 16, 
-       height = 12, units = "cm")
+print(plot0)
 ```
   
   
-## Counts distribution
+## Distribucion de las lecturas
 
-```{r totalgenesRow}
+```{r totalgenesRow,message=FALSE,warning=FALSE}
 total=sort(rowSums(assay(se, "counts")), decreasing = T)
 totalRows<-data.frame(counts=total, 
                       genes=1:length(total))
@@ -109,15 +108,11 @@ theme_bw()+
    geom_hline(yintercept =5,
               color = "red",
               size=1)
-  
+print(plot1)
 ###############
-ggsave(filename = "reads1.png" , 
-       plot = plot1, 
-       width = 16, 
-       height = 12, units = "cm")
 ```
 
-```{r totalgenesRow2}
+```{r totalgenesRow2,message=FALSE,warning=FALSE}
 plot2<-ggplot(totalRows, aes(x=genes, y=counts)) +
 geom_point()+
 theme_bw()+
@@ -129,46 +124,44 @@ theme_bw()+
               color = "blue",
               size=1)
 ###############
-ggsave(filename = "reads2.png" , 
-       plot = plot2,
-       width = 16, 
-       height = 12, units = "cm")
-
+print(plot2)
 ```
 
-# by Samples
+# Análisis por muestras
 
-```{r boxplot}
-png("boxplot.png")
-boxplot(log10(assay(se)+1),
-        ylab=expression('Log'[10]~'Read counts'),
+
+```{r boxplot,message=FALSE,warning=FALSE}
+boxplot(log2(assay(se)+1),
+        ylab=expression('Log'[2]~'Read counts'),
         las=2,
         main="No filter counts")
-dev.off()        
 ```
 
-## Remove genes/rows that do not have > 0 total counts 
-- all zero genes
+- prestar atención: `log2(assay(se)+1)`
 
-```{r filter0}
+# Filtros por expresión
+
+## Descartamos genes con 0 lecturas en todas las muestras
+
+- *all zero genes*
+
+```{r filter0,message=FALSE,warning=FALSE}
 se <- se[rowSums(assay(se, "counts")) > 0, ]
-nrow(se)
+nrow(se) #27827
 ```
 
-## Remove genes/rows that do not have > 5 total counts 
-
+## Descartamos genes con menos de 5 lecturas en TOTAL en todas las muestras
+ 
 ```{r filter5}
 se <- se[rowSums(assay(se, "counts")) > 5, ]
-nrow(se)
+nrow(se) # 23449
 ```
 
 
+## Re-analizamos la distribución de lecturas
 
 
-## Counts distribution
-
-
-```{r totalgenesRow3}
+```{r totalgenesRow3,message=FALSE,warning=FALSE}
 total=sort(rowSums(assay(se, "counts")), decreasing = T)
 
 totalRows<-data.frame(counts=round(total), 
@@ -177,13 +170,10 @@ plot1<-ggplot(totalRows, aes(x=genes,y=counts)) +
 geom_point()+
 theme_bw()
 ###############
-ggsave(filename = "reads3.png" , 
-       plot = plot1, 
-       width = 16, 
-       height = 12, units = "cm")
+print(plot1)
 ```
 
-```{r totalgenesRow4}
+```{r totalgenesRow4,message=FALSE,warning=FALSE}
 plot2<-ggplot(totalRows, aes(x=genes, y=counts)) +
 geom_point()+
 theme_bw()+
@@ -191,70 +181,56 @@ theme_bw()+
     geom_hline(yintercept =5,
               color = "red",
               size=1)
-
-ggsave(filename = "reads4.png" , 
-       plot = plot2,
-       width = 16, 
-       height = 12, units = "cm")
-
+print(plot2)
 ```
 
-## by Samples
+- ¿qué estamos viendo en el plot 2?
 
-```{r boxplot2}
-png("boxplot2.png")
-
-boxplot(log10(assay(se)+1),
-        ylab=expression('Log'[10]~'Read counts'),
-        las=2,
-        main="Abover 5 reads per gene ")
-dev.off()        
-```
+- ¿qué gen tiene el valor máximo de counts?
 
 ```{r max}
 which.max(rowSums(assay(se, "counts")))
 ```
 
+# Normalización
 
-# Normalization
+- Se puede implementar el método de normalización basado en la medianas usando la función  de DESeq2 `estimateSizeFactors()`
 
-To perform the median of ratios method of normalization, DESeq2 has a single estimateSizeFactors() function that will generate size factors for us.  This step is automatically performed by the _DESeq()_ function, which we will see later.
+- Podemos extraer los factores de normalización que estima del objeto se
 
+- La función  `DESeq()` ya lo tiene incorporado
 
-
-
-```{r deseq2}
+```{r deseq2,message=FALSE,warning=FALSE}
 dds <- DESeq2::DESeqDataSet(se, design = ~ gender + Time)
 dds <- estimateSizeFactors(dds, type="ratio")
 se$libSize <-  colSums(assay(se))
 ```
 
-- get help
+- Para verificar los parametros que utiliza tenemos, siempre inspeccionar los parámetros de la función:
 
 ```{r estimateSize}
-??estimateSizeFactors
+?estimateSizeFactors
 ```
 
-## Library Sizes
+## Analizamos el tamaño de las bibliotecas
+
+*Library Sizes*
 
 ```{r libsize}
 
-
 plot5<-colData(se) |>
   as.data.frame() |>
-
   ggplot(aes(x = Label, y = libSize / 1e6, fill = Group)) + 
   geom_bar(stat = "identity") + theme_bw() + 
   labs(x = "Sample", y = "Total count in millions") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
-ggsave(filename = "sizeFactor1.png" , 
-       plot = plot5,
-       width = 16, 
-       height = 12, units = "cm")
+print(plot5)
 ```
 
-## Plot the size factors against library size and look for any patterns by group:
+## Graficamos los factores de normalización frente al tamaño de la biblioteca 
+
+- detectar patrones por grupo
   
 ```{r libsizeplot}
 plot6<-ggplot(data.frame(libSize = colSums(assay(dds)),
@@ -264,95 +240,97 @@ plot6<-ggplot(data.frame(libSize = colSums(assay(dds)),
   geom_point(size = 5) + theme_bw() + 
   labs(x = "Library size", y = "Size factor")
 
-
-ggsave(filename = "sizeFactor2.png" , 
-       plot = plot6,
-       width = 16, 
-       height = 12, units = "cm")
+print(plot6)
 ```
 
 
-# Extract normalized counts by library size:
+# Normalizaciones por size
+
+## Opcion 1: sin normalizar
+
+- `assay(se)`
+- `log2(assay(se)+1`
+
+```{r boxplot1}
+boxplot(log2(assay(se)+1),ylab=expression('Log'[2]~'Read counts'),
+        las=2,main="Abover 5 reads per gene ")
+```
+
+## Opción 2: normalización por default DESeq2 norm default
+
+- Estás obteniendo los conteos divididos por los "size factors" (factores de tamaño) que DESeq2 calculó internamente mediante el método de la mediana de razones (median-of-ratios). Conteos normalizados (división por size factors, escala lineal)
+
+
+```{r boxplot2}
+counts_norm <- counts(dds, normalized = TRUE)
+
+boxplot(log2(as.matrix(counts_norm)+1),ylab=expression('Log'[2]~'Read counts'),las=2,main="DESeq2 norm default")
+```
+
+- observar la expresion: `log2(as.matrix(cd)+1)``
+
+### Función `normTransform`: 
+
+```{r normtransform}
+nt <- normTransform(dds)
+counts_log2 <- assay(nt)#log2
+```
+
+## Opción 3:  VST Estabilización de la varianza
+
+
+```{r ddsvst}
+vst<-varianceStabilizingTransformation(dds,blind=T)
+vsd<-assay(vst)
+```
 
 ```{r boxplot3}
-cd <- counts(dds,normalized=TRUE)
-
-png("boxplot3.png")
-boxplot(log10(as.matrix(cd)+1),ylab=expression('Log'[10]~'Read counts'),las=2,main="DESeq2 norm default")
-dev.off()        
+boxplot(vsd,ylab=expression('vst ~Read counts'),las=2,main="DESeq2 norm vst")
 ```
 
-## Variance stabilization
-
-
-
-```{r meanSdPlot}
-png("meanSD.png",  width = 480, height = 480, units = "px")
-meanSdPlot(assay(dds), ranks = FALSE)
-dev.off()  
-```
-
-```{r var}
-
-vsd <- DESeq2::vst(dds, blind = TRUE)
-
-png("meanSDpost.png")
-meanSdPlot(assay(vsd), ranks = FALSE)
-dev.off()  
-```
-
-# VST: variance stabilization
-
-```{r ntd}
-library("vsn")
-ntd <- normTransform(dds)
-meanSdPlot(assay(ntd))
-```
-
-```{r ddsCV}
-
-vst <- assay(vst(dds))
-cv <- as.data.frame(assay(varianceStabilizingTransformation(dds,blind=T)),check.names=F)
-```
-
+## Comparar normalizaciones
 
 ```{r compareNormVST}
-png("compareBoxplots.png",  width = 700, height = 480, units = "px")
 par(mfrow=c(1,3))
 
-boxplot(log10(assay(se)+1),
-        ylab=expression('Log'[10]~'Read counts'),
-        las=2,
-        main="Abover 5 reads per gene ")
+boxplot(log2(assay(se)+1),ylab=expression('Log'[2]~'Read counts'),
+        las=2,main="Abover 5 reads per gene ")
 
-boxplot(log10(as.matrix(cd)+1),ylab=expression('Log'[10]~'Read counts'),las=2,main="DESeq2 norm default")
+boxplot(counts_log2,ylab=expression('Log'[2]~'Read counts'),las=2,main="DESeq2 norm default")
 
-boxplot(log10(as.matrix(cv)+1),ylab=expression('Log'[10]~'Read counts'),las=2,main="DESeq2 norm vst")
+boxplot(vsd,ylab=expression('vst ~Read counts'),las=2,main="DESeq2 norm vst")
+
 dev.off()
 ```
 
+## Comparar normalizaciones: varianza
 
-* This function calculates a variance stabilizing transformation (VST) from the fitted dispersion-mean relation(s) and then transforms the count data (normalized by division by the size factors or normalization factors), yielding a matrix of values which are now approximately homoskedastic (having constant variance along the range of mean values).
+- `meanSdPlot`: Standard deviation and mean are calculated row-wise from the expression matrix (in) x. The scatterplot of these versus each other allows you to visually verify whether there is a dependence of the standard deviation (or variance) on the mean. The red line depicts the running median estimator (window-width 10%). If there is no variance-mean dependence, then the line should be approximately horizontal.
 
-* The transformation also normalizes with respect to library size. The rlog is less sensitive to size factors, which can be an issue when size factors vary widely. These transformations are useful when checking for outliers or as input for machine learning techniques such as clustering or linear discriminant analysis
+Value: A named list with five components: its elements px and py are the x- and y-coordinates of the individual data points in the plot; its first and second element are the x-coordinates and values of the running median estimator (the red line in the plot). Its element gg is the plot object (see examples). Depending on the value of plot, the method can (and by default does) have a side effect, which is to print gg on the active graphics device.
 
-* For RNA-seq data, as the mean count value increases, the variance increases. There is a strong almost linear relationship as seen in the figures. The statistical methods such as PCA expects similar variance across the range of mean values. If not, the higher variance genes will contribute more than the lower variance genes. Such data is said to be heteroscedastic and needs to be corrected. Correction using log transformation (with pseudocount) now gives inflates the contribution of the low variance genes. To obtain similar variance across the whole range of mean values.
+```{r comparemeanSD}
 
-* As the name suggests, VST transformation stabilizes variance across the whole range of count values. VST is recommended for clustering or visualisation. 
+par(mfrow=c(1,3))
+
+meanSdPlot(log2(assay(se)+1), ranks = FALSE)
+meanSdPlot(counts_log2, ranks = FALSE)
+meanSdPlot(vsd, ranks = FALSE)
+```
+
 
 [source](https://hbctraining.github.io/DGE_workshop/lessons/02_DGE_count_normalization.html)
 
-# Check data quality by clustering
+# Análisis de calidad
 
 
-## Euclidean distance between samples
+## Distancia Euclidea entre muestras
 
 ```{r dist}
-dst <- dist(t(assay(vsd)))
+dst <- dist(t(vsd))
 
 colors <- colorRampPalette(brewer.pal(9, "Blues"))(255)
 
-png("sampleDistances.png")
 ComplexHeatmap::Heatmap(
   as.matrix(dst), 
   col = colors,
@@ -360,23 +338,21 @@ ComplexHeatmap::Heatmap(
   cluster_rows = hclust(dst),
   cluster_columns = hclust(dst),
   bottom_annotation = columnAnnotation(
-    gender = vsd$gender,
-    time = vsd$Time,
+    gender = vst$gender,
+    time = vst$Time,
     col = list(gender = c(female = "red", male = "blue"),
                time = c(Day0 = "yellow", 
                         Day4 = "forestgreen", 
                         Day8 = "purple"))))
-dev.off()
 ```
 
-## Principal components analysis
+## Análisis de componentes principales 
 
 ```{r pca}
-pcaData <- DESeq2::plotPCA(vsd, intgroup = c("gender", "Time"),
+pcaData <- DESeq2::plotPCA(vst, intgroup = c("gender", "Time"),
                            returnData = TRUE)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 
-png("pcaDef.png")
 ggplot(pcaData, aes(x = PC1, y = PC2)) +
   geom_point(aes(color = gender, shape = Time), size = 5) +
   theme_minimal() +
@@ -384,31 +360,23 @@ ggplot(pcaData, aes(x = PC1, y = PC2)) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   coord_fixed() + 
   scale_color_manual(values = c(male = "blue", female = "red"))
-dev.off()
 ```
 
-## PCA using PCAtools
+## PCAtools
 
 
 ```{r pcatoolspca}
-p <- pca(vst,
+p <- pca(vsd,
          metadata = colData(se), removeVar = 0.1)
 ```
 
 ### Eigenplot
 
-```{r eigenplot}
+```{r eigenplot,message=FALSE,warning=FALSE}
 eigencorplot(p,
     metavars = c('gender',
                  'Time',
                  'infection'))
-
-png("eigenplot.png")
-eigencorplot(p,
-    metavars = c('gender',
-                 'Time',
-                 'infection'))
-dev.off()
 ```
 
 ### Bi-plots
@@ -419,14 +387,6 @@ dev.off()
     hline = 0, vline = 0,
     legendPosition = 'right',
     colby = 'Time')
-
-png("biplotGenderTime.png")
- biplot(p,
-    lab = p$metadata$gender,
-    hline = 0, vline = 0,
-    legendPosition = 'right',
-    colby = 'Time')
-dev.off()
 ```
 
 ```{r biplot2}
@@ -436,35 +396,17 @@ biplot(p,
     hline = 0, vline = 0,
     legendPosition = 'right',
     colby = 'gender')
-
-png("biplotTimeGender.png")
-biplot(p,
-    lab = p$metadata$Time,
-    hline = 0, vline = 0,
-    legendPosition = 'right',
-    colby = 'gender')
-dev.off()
-
 ```
 
 ```{r biplot3}
-
  biplot(p,
     lab = p$metadata$infection,
     hline = 0, vline = 0,
     legendPosition = 'right',
     colby = 'Time')
-
-png("biplotInfectionTime.png")
- biplot(p,
-    lab = p$metadata$infection,
-    hline = 0, vline = 0,
-    legendPosition = 'right',
-    colby = 'Time')
- dev.off()
 ```
 
-# Save object
+# Guardamos el objeto se actualizado
 
 ```{r saveSE}
 head(colData(se))
@@ -473,7 +415,7 @@ dim(colData(se))
 head(assay(se))
 dim(assay(se))
     
-saveRDS(se, "data/GSE96870_se.rds")
+saveRDS(se, "data/GSE96870_senorm.rds")
 
 ```
 

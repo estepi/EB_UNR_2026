@@ -1,0 +1,195 @@
+---
+title: "Sesión 6: Normalización"
+subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+author:
+  - name: "Estefania Mancini"
+    orcid: "0000-0002-7308-1273"
+    email: "contact@estepi.com"
+date: "2026-09"
+lang: es
+keywords:
+  - RNA-Seq
+  - Bioconductor
+  - Transcriptómica
+  - FAIR
+  - OpenScience
+license: "GNU General Public License v3.0"
+repository: "https://github.com/estepi/EB_UNR_2026"
+doi: ""
+version: "1.0.0"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    number_sections: true
+    code_folding: hide
+    code_download: true
+    df_print: paged
+    fig_caption: yes
+    fig_height: 10
+    fig_width: 10
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    number_sections: true
+    latex_engine: xelatex
+params:
+  fecha_ejecucion: !r Sys.Date()
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Configuracion inicial
+
+## Definir el directorio de trabajo
+
+
+```{r setwd}
+setwd("~/Documents/UNR/EB_UNR_2026/")
+```
+
+## Cargamos los paquetes que utilizamos en esta sesión:
+
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(DESeq2)
+library(SummarizedExperiment)
+library(ggplot2)
+library(vsn)
+library(ComplexHeatmap)
+library(RColorBrewer)
+library(PCAtools)
+library(vsn)
+```
+
+## Cargamos el objeto SE
+
+```{r loadse}
+se <- readRDS("data/GSE96870_se.rds")
+```
+
+## Verificamos las dimensiones
+
+```{r totalgenes}
+nrow(se)
+```
+
+
+# Distribución binomial negativa
+
+\url{https://hbctraining.github.io/DGE_workshop_salmon/lessons/01_DGE_setup_and_overview.html}
+
+```{r nb, warning=FALSE, message=FALSE}
+counts<-assay(se) 
+plot0<-ggplot(counts) +
+  geom_histogram(aes(x = female_Day0_9), stat = "bin", bins = 200)+
+  xlab("Raw expression counts") +
+  ylab("Number of genes")+
+  theme_bw()
+print(plot0)
+#reads0
+```
+  
+  
+## Distribucion de las lecturas
+
+```{r totalgenesRow,message=FALSE,warning=FALSE}
+total=sort(rowSums(assay(se, "counts")), decreasing = T)
+totalRows<-data.frame(counts=total, 
+                      genes=1:length(total))
+plot1<-ggplot(totalRows, aes(x=genes,y=counts)) +
+geom_point()+
+theme_bw()+
+   geom_hline(yintercept =5,
+              color = "red",
+              size=1)
+print(plot1)
+###############
+#"reads1.png" 
+```
+
+```{r totalgenesRow2}
+plot2<-ggplot(totalRows, aes(x=genes, y=counts)) +
+geom_point()+
+theme_bw()+
+  ylim(0,50)+
+    geom_hline(yintercept =5,
+              color = "red",
+              size=1)+
+    geom_vline(xintercept =25000,
+              color = "blue",
+              size=1)
+###############
+print(plot2)
+# "reads2.png" 
+```
+
+# Análisis por muestras
+
+
+```{r boxplot}
+#"boxplot.png"
+boxplot(log10(assay(se)+1),
+        ylab=expression('Log'[10]~'Read counts'),
+        las=2,
+        main="No filter counts")
+```
+
+- prestar atención: `log10(assay(se)+1)`
+
+# Filtros por expresión
+
+## Descartamos genes con 0 lecturas en todas las muestras
+
+- *all zero genes*
+
+```{r filter0}
+se <- se[rowSums(assay(se, "counts")) > 0, ]
+nrow(se) #27827
+```
+
+## Descartamos genes con menos de 5 lecturas en TOTAL en todas las muestras
+ 
+```{r filter5}
+se <- se[rowSums(assay(se, "counts")) > 5, ]
+nrow(se) # 23449
+```
+
+
+
+# Bonus Claude:
+
+## 1. Conteos crudos (sin normalizar)
+
+```r
+counts_raw <- counts(dds, normalized = FALSE)
+```
+
+## 2. Conteos normalizados (división por size factors, escala lineal)
+
+```r
+counts_norm <- counts(dds, normalized = TRUE)
+```
+
+## 3. Normalizados + log2(x+1) — rápido, útil para exploración inicial
+
+```r
+nt <- normTransform(dds)
+counts_log2 <- assay(nt)
+```
+
+## 4. Variance Stabilizing Transformation (VST) — recomendado para >12 muestras
+
+```r
+vsd <- vst(dds, blind = TRUE)
+counts_vst <- assay(vsd)
+```
+
+
+
