@@ -41,7 +41,9 @@ dds <- DESeq2::DESeqDataSet(se,
 ```
 
 
-## Normalization and modelling
+# Binomial negativa
+
+# Dispersion
 
 ```{r dset}
 dds <- estimateSizeFactors(dds)
