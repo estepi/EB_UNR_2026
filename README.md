@@ -100,6 +100,7 @@ Al finalizar el curso, los participantes serán capaces de:
 - https://link.springer.com/article/10.1186/s13059-016-0881-8
 - FAIR: https://www.cell.com/current-biology/fulltext/S0960-9822(23)00668-1
 - https://www.nature.com/articles/sdata201618
+- https://www.nature.com/articles/nprot.2013.099
 
 # 📚 Lecturas Recomendadas
 
@@ -111,6 +112,7 @@ Al finalizar el curso, los participantes serán capaces de:
 - edgeR Users Guide , edgeR vignette
 - Introduction to DGE - normalization 
 - RNA-Seq analysis with R/Bioconductor - Carpentries 
+- Analyzing RNA-seq data with DESeq2
 
 # ✉️ Contacto
 
