@@ -1,6 +1,6 @@
 ---
-title: "Sesión 6: Estadística para RNA-seq"
-subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+title: "Sesión 6: Exploración inicial de los datos "
+subtitle: "Análisis de datos RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
 author:
   - name: "Estefania Mancini"
     orcid: "0000-0002-7308-1273"

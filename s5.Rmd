@@ -1,6 +1,6 @@
 ---
 title: "Sesión 5: Diseño experimental"
-subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+subtitle: "Análisis de datos de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
 author:
   - name: "Estefania Mancini"
     orcid: "0000-0002-7308-1273"

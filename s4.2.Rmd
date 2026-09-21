@@ -1,6 +1,6 @@
 ---
 title: "Sesión 4.2: Repaso R/Bioconductor. Reportes en Markdown"
-subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+subtitle: "Análisis de datos de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
 author:
   - name: "Estefania Mancini"
     orcid: "0000-0002-7308-1273"
@@ -45,21 +45,23 @@ params:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Definir el directorio de trabajo
+# Configuracion inicial
+
+## Definimos directorio de trabajo
 
 
 ```{r setwd}
 setwd("~/Documents/UNR/EB_UNR_2026/")
 ```
 
-#  Crear subdirectorios
+##  Creamos subdirectorios
 
 ```{r dircreate}
 dir.create("data")
 dir.create("reportes")
 ```
 
-# Verificar que los paquetes necesarios están instalados
+## Verificar que los paquetes necesarios están instalados
 
   
 ```{r libraries, message=FALSE, warning=FALSE,echo=TRUE}
