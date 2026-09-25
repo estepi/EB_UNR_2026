@@ -1,5 +1,5 @@
 ---
-title: "Sesión 6: Exploración inicial de los datos "
+title: "Sesión 6: Exploración inicial de los datos de expresión"
 subtitle: "Análisis de datos RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
 author:
   - name: "Estefania Mancini"
@@ -68,7 +68,7 @@ library(PCAtools)
 library(vsn)
 ```
 
-## Cargamos el objeto SE
+## Cargamos el objeto **SE**
 
 ```{r loadse}
 se <- readRDS("data/GSE96870_se.rds")
@@ -98,8 +98,11 @@ print(plot0)
 
 ### Distribución de lecturas por gen (filas)
 
+- *¿para qué nos sirve?
+
 ```{r totalgenesRow,message=FALSE,warning=FALSE}
 total=sort(rowSums(assay(se, "counts")), decreasing = T)
+
 totalRows<-data.frame(counts=total, 
                       genes=1:length(total))
 plot1<-ggplot(totalRows, aes(x=genes,y=counts)) +
@@ -140,7 +143,7 @@ boxplot(log2(assay(se)+1),
 
 ### Descartamos genes con 0 lecturas en todas las muestras
 
-- *all zero genes*
+- **all zero genes**
 
 ```{r filter0,message=FALSE,warning=FALSE}
 se <- se[rowSums(assay(se, "counts")) > 0, ]
@@ -149,14 +152,17 @@ nrow(se) #27827
 
 ### Descartamos genes con menos de 5 lecturas en TOTAL en todas las muestras
  
+ - *¿cómo definimos el criterio para considerar que un gen está expresado? Ejemplo: al menos 30%, ningún 0, 100 lecturas...*
+ 
 ```{r filter5}
 se <- se[rowSums(assay(se, "counts")) > 5, ]
-nrow(se) # 23449
+nrow(se) 
 ```
 
 
 ## Re-analizamos la distribución de lecturas
 
+- *¿Qué cambia?*
 
 ```{r totalgenesRow3,message=FALSE,warning=FALSE}
 total=sort(rowSums(assay(se, "counts")), decreasing = T)
@@ -180,8 +186,8 @@ theme_bw()+
 print(plot2)
 ```
 
-- ¿qué estamos viendo en el gráfico 2?
-- ¿qué gen tiene el valor máximo de counts?
+- *¿qué estamos viendo en el gráfico 2?*
+- *¿qué gen tiene el valor máximo de counts?*
 
 ```{r max}
 which.max(rowSums(assay(se, "counts")))
@@ -193,7 +199,7 @@ which.max(rowSums(assay(se, "counts")))
 
 - Podemos extraer los factores de normalización que estima del objeto `se`
 
-- La función  `DESeq()` ya lo tiene incorporado
+- La función `DESeq()` ya lo tiene incorporado
 
 ```{r deseq2,message=FALSE,warning=FALSE}
 dds <- DESeq2::DESeqDataSet(se, design = ~ gender + Time)
@@ -201,15 +207,15 @@ dds <- estimateSizeFactors(dds, type="ratio")
 se$libSize <-  colSums(assay(se))
 ```
 
-- Para verificar los parámetros que utiliza tenemos, siempre inspeccionar los ayuda disponible de la función:
+- Para verificar los parámetros que utiliza, **siempre siempre siempre** inspeccionar la ayuda disponible de la función:
 
 ```{r estimateSize}
 ?estimateSizeFactors
 ```
 
-## Analizamos el tamaño de las bibliotecas
+## Analizamos la profundidad de las bibliotecas
 
-*Library Sizes*
+**Library Sizes**
 
 ```{r libsize}
 
@@ -222,9 +228,10 @@ plot5<-colData(se) |>
 print(plot5)
 ```
 
-## Graficamos los factores de normalización frente al tamaño de la biblioteca 
+## Graficamos los factores de normalización y la profundidad de la biblioteca 
 
-- detectar patrones por grupo
+- *¿ Podemos detectar patrones por grupo?*
+- *¿Cómo están ordenadas las muestras?*
   
 ```{r libsizeplot}
 plot6<-ggplot(data.frame(libSize = colSums(assay(dds)),
@@ -239,9 +246,6 @@ print(plot6)
 
 ## Opcion 1: distribución de lecturas por muestra sin normalizar
 
-- `assay(se)`
-- `log2(assay(se)+1`
-
 ```{r boxplot1}
 boxplot(log2(assay(se)+1),ylab=expression('Log'[2]~'Read counts'),
         las=2,main="Above 5 reads per gene ")
@@ -250,8 +254,7 @@ boxplot(log2(assay(se)+1),ylab=expression('Log'[2]~'Read counts'),
 
 ## Opción 2: normalización por defecto de `DESeq2`
 
-- Se divide linealmente el número de lectura por los factores de tamaño de las bibliotecas
-
+- Se divide linealmente el número de lectura por los factores de profundidad de las bibliotecas
 
 ```{r boxplot2}
 counts_norm <- counts(dds, normalized = TRUE)
@@ -270,13 +273,13 @@ counts_log2 <- assay(nt)#log2
 
 ## Opción 3:  estabilización de la varianza con fines exploratorios
 
-- En el caso de los datos de RNA-seq, la varianza aumenta a medida que lo hace el valor medio de recuento.
+- En el caso de los datos de RNA-seq, la varianza aumenta a medida que lo hace el valor medio de lecturas
 
 - El método `varianceStabilizingTransformation()`: calcula una transformación estabilizadora de la varianza (VST) a partir de la(s) relación(es) ajustada(s) entre dispersión y media
 
-- Transforma los datos de recuento (normalizados mediante división por los factores de tamaño o factores de normalización), generando una matriz de valores que presentan una homocedasticidad aproximada (es decir, una varianza constante a lo largo del rango de valores medios).
+- Transforma los datos de recuento (normalizados mediante división por los factores de profundidad o factores de normalización), generando una matriz de valores que presentan una homocedasticidad aproximada (es decir, una varianza constante a lo largo del rango de valores medios).
 
-- Es útiles para identificar valores atípicos o como datos de entrada para análisis de agrupamiento o el análisis discriminante lineal o componentes principales
+- Es útil para identificar valores atípicos o como datos de entrada para análisis de agrupamiento o el análisis discriminante lineal o componentes principales
 
 
 ```{r ddsvst}
@@ -318,7 +321,6 @@ dev.off()
 - La línea roja representa el estimador de mediana móvil (con una ventana del 10% de ancho) -> Si no existe dependencia entre la varianza y la media, la línea debería ser aproximadamente horizontal.
 
 
-
 ```{r comparemeanSD}
 par(mfrow=c(1,2))
 meanSdPlot(counts_log2, ranks = FALSE)
@@ -328,8 +330,7 @@ dev.off()
 
 # Distancia entre réplicas como métrica de calidad
 
-
-## Distancia Euclidea entre muestras
+- Distancia Euclidea entre muestras
 
 ```{r dist}
 dst <- dist(t(vsd))
@@ -342,6 +343,8 @@ ComplexHeatmap::Heatmap(
   name = "Euclidean\ndistance",
   cluster_rows = hclust(dst),
   cluster_columns = hclust(dst),
+  row_split=8,
+  column_split = 8,
   bottom_annotation = columnAnnotation(
     gender = vst$gender,
     time = vst$Time,
@@ -353,16 +356,17 @@ ComplexHeatmap::Heatmap(
 
 # Análisis de componentes principales como métrica de calidad
 
-Es una técnica de reducción de dimensionalidad lineal con aplicaciones en el análisis exploratorio de datos, la visualización y el preprocesamiento de datos.
+- Es una técnica de reducción de dimensionalidad lineal con aplicaciones en el análisis exploratorio de datos, la visualización y el preprocesamiento de datos.
 
-Los datos se transforman linealmente a un nuevo sistema de coordenadas de modo que sea posible identificar fácilmente las direcciones (componentes principales) que capturan la mayor variación de los datos.
+- Los datos se transforman linealmente a un nuevo sistema de coordenadas de modo que sea posible identificar fácilmente las direcciones (componentes principales) que capturan la mayor variación de los datos.
 
 ## Biplots
 
-Las muestras se proyectan sobre un plano bidimensional de manera que se distribuyen a lo largo de las dos direcciones que explican la mayor parte de las diferencias.
-El porcentaje de la varianza total contenido en cada dirección se indica en la etiqueta del eje. 
+- Las muestras se proyectan sobre un plano bidimensional de manera que se distribuyen a lo largo de las dos direcciones que explican la mayor parte de las diferencias.
 
-Estos porcentajes no suman el 100%, ya que existen otras dimensiones que contienen la varianza restante.
+- El porcentaje de la varianza total contenido en cada dirección se indica en la etiqueta del eje. 
+
+- Estos porcentajes no suman el 100%, ya que existen otras dimensiones que contienen la varianza restante.
 
 ```{r pcatoolspca}
 p <- pca(vsd,
@@ -375,15 +379,16 @@ p <- pca(vsd,
     lab = p$metadata$gender,
     hline = 0, vline = 0,
     legendPosition = 'right',
+    labSize = 5,
     colby = 'Time')
 ```
 
 ```{r biplot2}
-
 biplot(p,
     lab = p$metadata$Time,
     hline = 0, vline = 0,
     legendPosition = 'right',
+    labSize = 5,
     colby = 'gender')
 ```
 
@@ -392,30 +397,30 @@ biplot(p,
     lab = p$metadata$infection,
     hline = 0, vline = 0,
     legendPosition = 'right',
+    labSize = 5,
     colby = 'Time')
 ```
 
 
 ## Eigenplot
 
-también llamado scree plot o gráfico de sedimentación/varianza explicada) 
-representa cuánta varianza de los datos originales captura cada componente principal (PC). 
+- También llamado *scree plot* representa cuánta varianza de los datos originales captura cada componente principal (PC). 
 
-```{r eigenplot,message=FALSE,warning=FALSE}
+```{r eigenplot,message=FALSE,warning=FALSE, fig.height=5}
 eigencorplot(p,
     metavars = c('gender',
                  'Time',
                  'infection'))
 ```
 
-# Guardamos el objeto se actualizado
+# Guardamos el objeto **se** actualizado
 
 ```{r saveSE}
 saveRDS(se, "data/GSE96870_senorm.rds")
 
 ```
 
-# SessionInfo
+# Session Info
 
 ```{r sessionInfo}
 sessionInfo()
@@ -423,5 +428,6 @@ sessionInfo()
 
 # Ideas
 
-[source](https://hbctraining.github.io/DGE_workshop_salmon/lessons/01_DGE_setup_and_overview.html)
-[source](https://hbctraining.github.io/DGE_workshop/lessons/02_DGE_count_normalization.html)
+* [Introducción](https://hbctraining.github.io/DGE_workshop_salmon/lessons/01_DGE_setup_and_overview.html)
+
+* [Normalización](https://hbctraining.github.io/DGE_workshop/lessons/02_DGE_count_normalization.html)

@@ -68,8 +68,9 @@ library(DESeq2)
 
 # Análisis de enriquecimientos 
 
-## Extraemos los genes diferencialmente expresados a diferentes tiempos
+## Extraemos los genes diferencialmente expresados a diferentes tiempos y comparaciones
 
+- *¿cuál es el criterio para considerar que un gen es DE?*
 
 ```{r loadse, warning=FALSE, message=FALSE}
 se <- readRDS("data/GSE96870_se.rds")
@@ -88,10 +89,9 @@ head(timeDEgenes)
 
 # Aplicamos los test de enriquecimiento:
 
-- el test realiza el mapeo de los gene Id en ENSEMBL a los términos GO previamente asociados en org.Mm.eg.db
+- el test realiza el mapeo de los **ENSEMBL geneID** a los **términos GO** previamente asociados en `org.Mm.eg.db`
 
-
-## **enrichGO**
+## Test: **enrichGO**
 
 ```{r restimeGO, warning=FALSE, message=FALSE}
 resTimeGO = enrichGO(gene = timeDEgenes, 
@@ -104,7 +104,11 @@ resTimeGOTable = as.data.frame(resTimeGO)
 head(resTimeGOTable)
 ```
 
-##  Map to gene Ids
+## Test: **enrichKEGG**
+
+Este test usa ENTREZ ID para mapear a las rutas KEGG:
+
+###  Convertimos **ENSEMBL geneID** a **ENTREZ geneID**:
 
 ```{r map2entrez, warning=FALSE, message=FALSE}
 EntrezIDs = mapIds(org.Mm.eg.db, 
@@ -155,8 +159,7 @@ dev.off()
 
 # Agrupamiento de términos 
 
-Se dividen los términos GO en grupos según su similitud semántica y resume sus funciones comunes mediante nubes de palabras
-
+- Se dividen los términos GO en grupos según su similitud semántica y resume sus funciones comunes mediante nubes de palabras
 
 ```{r simplify, warning=FALSE, message=FALSE}
 GO_ID = resTimeGOTable$ID[resTimeGOTable$p.adjust < 0.1]
@@ -167,7 +170,6 @@ simplifyGO(GO_ID)
 dev.off()
 
 ```
-
 
 
 # Session Info

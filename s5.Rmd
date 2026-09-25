@@ -50,13 +50,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Cargamos los paquetes que utilizamos en esta sesión:
 
+- por qué no es recomendable cargar todos los paquetes ?
   
 ```{r libraries, message=FALSE, warning=FALSE}
 library(DESeq2)
 library(org.Mm.eg.db)
 ```
 
-## Definir el directorio de trabajo
+## Definimos el directorio de trabajo
 
 ```{r setwd}
 setwd("~/Documents/UNR/EB_UNR_2026/")
@@ -105,15 +106,15 @@ table(md$Time)
 
 ## Seleccionamos las muestras con las que vamos a trabajar
 
-El diseño experimental original en Blackmore et al. 2017 es complejo:
+El diseño experimental original en **Blackmore et al. 2017** es complejo pues:
 
-Se recogieron ratones C57BL/6 machos y hembras de 8 semanas de edad en el Día 0 (antes de la infección por influenza), el Día 4 y el Día 8 después de la infección por influenza.
+- Se recogieron ratones C57BL/6 machos y hembras de 8 semanas de edad en el Día 0 (antes de la infección por influenza), el Día 4 y el Día 8 después de la infección por influenza.
 
-De cada ratón se tomaron tejidos de cerebelo y médula espinal para RNA-seq.
+- De cada ratón se tomaron tejidos de cerebelo y médula espinal para estudiar con RNA-seq.
 
-Originalmente había 4 ratones por grupo de 'Sexo x Tiempo x Tejido', pero se perdieron algunos en el proceso, resultando en un total de 45 muestras
+- Originalmente había 4 ratones por grupo de 'Género x Tiempo x Tejido', pero se perdieron algunos en el proceso, resultando en un total de 45 muestras
 
-En este curso simplificamos el análisis usando únicamente las 22 **muestras de cerebelo**
+- En este curso simplificamos el análisis usando únicamente las **22 muestras de tejido cerebelo**
  
 ```{r sel}
 selected<-md[md$tissue == "Cerebellum",]
@@ -121,13 +122,13 @@ head(selected)
 ```
 
 
-# Obtenemos la matrix de conteo de lectura por gen
+# Obtenemos la matriz de conteos de lecturas por gen
 
-La cuantificación de la expresión se realizó utilizando el protocolo de [nf-core/rnaseq] (https://nf-co.re/rnaseq/3.26.0/)
+- La cuantificación de la expresión se realizó utilizando el protocolo de [nf-core/rnaseq] (https://nf-co.re/rnaseq/3.26.0/)
 
-Para alinear las lecturas se utilizó STAR y el genoma de referencia:
+- Para alinear las lecturas se utilizó STAR y el genoma de referencia:
 
-Para la cuantificación de genes y transcriptos se utilizó SALMON
+- Para la cuantificación de genes y transcriptos se utilizó SALMON
 
 
 ```{r loadcounts}
@@ -143,10 +144,10 @@ counts$gene_name <- NULL
 dim(counts)
 ```
 
-Qué información obtenemos de la dimensión de la matriz:
+## ¿Qué información obtenemos a partir de conocer la dimensión de la matriz?
 
-- Número de columnas: *samples* (total: 22)
-- Número de filas: *genes* (total: 45706 genes )
+- Número de columnas: **samples** (total: 22)
+- Número de filas: **genes** (total: 45706 genes )
 
 
 ```{r round}
@@ -154,18 +155,17 @@ counts<-round(counts)
 counts[1:5,1:5]
 ```
 
-# Creación de un objeto *Summarized Experiment*
+# Creación de un objeto *SummarizedExperiment*
 
-**SummarizedExperiment** es una clase de objeto de Bioconductor diseñada específicamente para almacenar y organizar datos de experimentos genómicos de alto rendimiento, como RNA-seq, microarrays o ChIP-seq. 
+- **SummarizedExperiment** es una clase de objeto de Bioconductor específico para almacenar y organizar datos de experimentos genómicos de alto rendimiento, como RNA-seq, microarrays o ChIP-seq. 
 
-Es el formato estándar que usan la mayoría de los paquetes de Bioconductor (DESeq2, edgeR, limma, etc.).
+- Es el formato estándar que usan la mayoría de los paquetes de Bioconductor (`DESeq2`, `edgeR`, `limma`, etc.).
 
-Nos permite guardar en 1 solo objeto los principales componentes de un experimento:
+- Nos permite guardar en 1 solo objeto los principales componentes de un experimento:
 
-- la matriz de conteos en el slot assays (convertida a formato matrix).
+* la matriz de conteos en el slot `assays` (convertida a formato matrix).
 
-- los metadatos de las muestras (colData), asegurando que el orden de las 
-muestras coincida con las columnas de la matriz de conteos.
+* los metadatos de las muestras (`colData`), asegurando que el orden de las muestras coincida con las columnas de la matriz de conteos.
 
 - Metadatos de genes:	información sobre cada gen (nombre, coordenadas genómicas, biotipo...)
 
@@ -192,7 +192,7 @@ coldata[1:5,]
 ```
 
 
-## Y re chequamos lacorrespondencia con la matriz de counts
+## Volvemos a chequear la correspondencia con la matriz de counts
 
 ```{r checks}
 all.equal(rownames(coldata) ,colnames(counts))
@@ -200,7 +200,7 @@ all.equal(rownames(coldata) ,colnames(counts))
 
 ## Creamos el objeto **SummarizedExperiment**
 
-- Atención a la función: 'as.matrix()'. **¿por qué lo hacemos?**
+- Atención a la función: 'as.matrix()'. *¿por qué lo hacemos?*
 
 ```{r se}
 se <- SummarizedExperiment(
@@ -217,7 +217,7 @@ head(assay(se))
 ```
 
 
-## Accedemos a las annotaciones
+## Accedemos a la anotación
 
 ```{r ann}
 dim(colData(se))
@@ -225,7 +225,7 @@ head(colData(se))
 ```
 
 
-## Creamos etiquetas para las muestras combinando: gender, Time y mouse_id
+## Creamos etiquetas para las muestras combinando: **gender**, **Time** y **mouse_id**
 
 
 ```{r label}
@@ -236,26 +236,24 @@ colnames(se) <- se$Label
 
 ## Factorizamos las etiquetas:
 
- - ¿por qué lo hacemos ?
- - Pensar en los gráficos posteriores 
+ - *¿por qué lo hacemos?* Ayuda: pensar en los gráficos posteriores 
 
 ```{r factorlevel, eval=F}
 se$Label <- factor(se$Label, levels = se$Label)
 ```
 
-## Ordenamos  las etiquetas:
-
-- Las muestras no estan en orden siguiendo gender y time
-
-- ¿cómo se ordenan las etiquetas por defecto?
-- ¿por qué es importante factorizar?
+## Creamos la etiqueta de **grupo** combinando: **gender** y  **Time** 
 
 ```{r order}
 se$Group <- paste(se$gender, se$Time, sep = "_")
 se$Group
 ```
 
-## Factorizar etiquetas:
+- Las muestras no están en orden siguiendo **gender** y **time**
+
+- *¿cómo se ordenan las etiquetas por defecto?*
+- *¿por qué es importante factorizar?*
+
 
 ```{r factorlabel}
 se$Group <- factor(se$Group, levels = c("female_Day0","male_Day0", 
@@ -267,7 +265,7 @@ se <- se[, order(se$Group)]
 
 ## Guardamos el objeto **SummarizedExperiment**:
 
-- ¿por qué?
+- *¿por qué?*
 
 ```{r saveSE}
 head(colData(se))
@@ -277,18 +275,20 @@ head(assay(se))
 dim(assay(se))
     
 saveRDS(se, "data/GSE96870_se.rds")
-
 ```
 
-## Podemos exportar el historial de comandos:
 
-```{r savothers, eval=FALSE}
-savehistory("S5.Rhistory")
-```
+# Session Info
 
-# Imprimimos los detalles de la sesión:
- - ¿por qué?
+- Guardamos los detalles de la sesión *¿por qué?*
 
 ```{r sessionInfo}
 sessionInfo()
+```
+
+
+## Historial
+
+```{r savothers, eval=FALSE}
+savehistory("S5.Rhistory")
 ```
