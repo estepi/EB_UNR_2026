@@ -62,9 +62,9 @@ BiocManager::install(c(
 * [Sesión 7](s7.Rmd): Pruebas de expresión diferencial
 * [Sesión 8](s8.Rmd): Enriquecimiento de conjuntos de genes y herramientas de visualización
 
-## Consulta por trabajo final: 05 de noviembre de 2026, Aula virtual
+## Consulta por trabajo final: 06 de noviembre de 2026, Aula virtual
 
-## Entrega trabajo final: 05 de diciembre de 2026
+## Entrega trabajo final: 04 de diciembre de 2026
 
 # 🎯 Objetivos de aprendizaje
 
@@ -79,24 +79,25 @@ Al finalizar el curso, los alumonos serán capaces de:
 7. Aplicar herramientas de enriquecimiento de conjuntos de genes y visualizar resultados.
 
 # 📖 Bibliografía
-- [frontiers](https://www.frontiersin.org/journals/genetics/articles/10.3389/fgene.2025.1697922/full)
-- [nature](https://www.nature.com/articles/s41576-019-0150-2)
-- [pmc](https://pmc.ncbi.nlm.nih.gov/articles/PMC3904521/pdf/btt688.pdf)
-- [springer](https://link.springer.com/article/10.1186/s13059-016-0881-8)
-- [FAIR](FAIR: https://www.cell.com/current-biology/fulltext/S0960-9822(23)00668-1)
-- [xx](https://www.nature.com/articles/sdata201618)
-- [nature](https://www.nature.com/articles/nprot.2013.099)
+
+- [From bench to bytes: a practical guide to RNA sequencing data analysis](https://www.frontiersin.org/journals/genetics/articles/10.3389/fgene.2025.1697922/full)
+- [RNA sequencing: the teenage years](https://www.nature.com/articles/s41576-019-0150-2)
+- [RNA-seq differential expression studies: more sequence or
+more replication?](https://pmc.ncbi.nlm.nih.gov/articles/PMC3904521/pdf/btt688.pdf)
+- [A survey of best practices for RNA-seq data analysis](https://link.springer.com/article/10.1186/s13059-016-0881-8)
+- [Count-based differential expression analysis of RNA sequencing data using R and Bioconductor](https://www.nature.com/articles/nprot.2013.099)
+- [DESeq2 vignette](https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [RNA-seq workflow: gene-level exploratory analysis and differential expression](https://www.bioconductor.org/packages//release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html)
+- [edgeR Users Guide](https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf)
+- [Introduction to DGE - normalization](https://hbctraining.github.io/Intro-to-DGE/lessons/02_DGE_count_normalization.html) 
+- [RNA-Seq analysis with R/Bioconductor - Carpentries](https://carpentries-incubator.github.io/bioc-rnaseq/)
 
 # 📚 Lecturas Recomendadas
 
-- [Open and sustainable AI: challenges, opportunities and the road ahead in the life sciences]()
-- [Rethinking bioinformatics expertise in the era of artificial intelligence]()
-- [DESeq2 vignette]()
-- [RNA-seq workflow: gene-level exploratory analysis and differential expression]()
-- [edgeR Users Guide , edgeR vignette]()
-- [Introduction to DGE - normalization]() 
-- [RNA-Seq analysis with R/Bioconductor - Carpentries]()
-- [Analyzing RNA-seq data with DESeq2]()
+- [Open science](https://www.cell.com/current-biology/fulltext/S0960-9822(23)00668-1)
+- [The FAIR Guiding Principles for scientific data management and stewardship](https://www.nature.com/articles/sdata201618)
+- [Open and sustainable AI: challenges, opportunities and the road ahead in the life sciences](https://www.nature.com/articles/s41592-026-03037-6)
+- [Rethinking bioinformatics expertise in the era of artificial intelligence](https://www.nature.com/articles/s41746-026-02777-1)
 
 # ✉️ Consultas
 
