@@ -1,6 +1,6 @@
 ---
-title: "Sesión 7: Estimación de la expresión diferencial de genes"
-subtitle: "Análisis de datos de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
+title: "Sesión 7: Genes diferencialmente expresados"
+subtitle: "Curso de Análisis de RNA-Seq. Especialización en Bioinformática - Universidad Nacional de Rosario. Argentina"
 author:
   - name: "Estefania Mancini"
     orcid: "0000-0002-7308-1273"
@@ -44,10 +44,10 @@ params:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Configuracion inicial
 
-# Configuración inicial
+## Definir el directorio de trabajo
 
-## Definimos el directorio de trabajo
 
 ```{r setwd}
 setwd("~/Documents/UNR/EB_UNR_2026/")
@@ -55,67 +55,51 @@ setwd("~/Documents/UNR/EB_UNR_2026/")
 
 ## Cargamos los paquetes que utilizamos en esta sesión:
 
-```{r libraries, warning=FALSE, message=FALSE}
+```{r libraries}
 library(DESeq2)
 library(SummarizedExperiment)
 library(ggplot2)
 library(vsn)
 library(ComplexHeatmap)
 library(RColorBrewer)
-library(PCAtools)
-library(vsn)
 ```
 
-## Cargamos el objeto **SE**
+## Load SE
 
 ```{r loadse}
 se <- readRDS("data/GSE96870_se.rds")
-```
-
-## Verificamos las dimensiones
-
-```{r totalgenes}
 dim(se)
 ```
 
 
-# Estimación de expresión diferencial
+# The DESeqDataSet: Create DESeqDataSet
 
-## Creamos el objeto `DESeqDataSet`
-
-```{r DESeqDataSet}
+```{r deseq}
 dds <- DESeq2::DESeqDataSet(se,
                             design = ~ gender + Time)
 ```
 
-- *prestar atención al diseño experimental. ¿Qué pregunta vamos a responder con este modelo?*
-
-## Matriz de diseño
-
-### ~ gender + Time
-
-- *¿qué significa el término intercept?*
+## Design matrix
 
 ```{r modelmatrix}
+
 design(dds)
 model.matrix(~ gender + Time , colData(se))
-```
 
-### ~ 0+ gender + Time
+
+```
 
 ```{r modelmatrix0}
 model.matrix(~ 0+ gender + Time , colData(se))
 ```
 
-## Sólo gender
+## Only gender
 
 ```{r modelgender}
 model.matrix(~ gender , colData(se))
 ```
 
-## Efectos de la composición y profundidad de las bibliotecas 
-
-- *¿Qué factores pueden modificar la composición de un transcriptoma?*
+# Library sizes and compositional effects
 
 ```{r sizefactor}
 dds <- estimateSizeFactors(dds)
@@ -123,10 +107,7 @@ head(dds$sizeFactor)
 head(dds$libSize)
 ```
 
-
-## Dispersión
-
-- *¿por qué es importante estimar bien la dispersión? ¿cuáles son los riesgos de subestimar o sobreestimar o de usar el mismo valor de dispersión para todos los genes?*
+# Dispersion
 
 ```{r dispersion, message=T}
 dds <- estimateDispersions(dds)
@@ -141,49 +122,60 @@ dev.off()
 
 ```
 
-## Aplicamos el test de expresión diferencial:
+# DGE Testing
 
 ```{r testing}
 dds <- nbinomWaldTest(dds)
 ```
 
-## Evaluamos todo en un solo paso:
-```{r testingfast, message=TRUE, eval=FALSE}
+```{r testingfast, message=TRUE}
 ddsFAST <- DESeq(dds)
 ```
 
-# Exploración de resultados
 
-## Comparación: **Day 8** y  **Day 0**
+# Explore results 
+
+## Explore results for specific contrasts
+
+### Day 8 vs Day 0
 
 ```{r restime}
 resTime <- results(dds, 
                    contrast = c("Time", "Day8", "Day0"))
 summary(resTime)
 class(resTime)
+
 ```
 
 ```{r reshelp, message=T}
 ?results
 ```
 
+## View(resTime)
+
 ```{r viewrestime}
+
 head(resTime[order(resTime$pvalue), ])
+
+
 ```
 
 
-## Gráfoco MA
-
-- *¿de dónde viene MA?*
+## Plot MA
 
 ```{r plotMA}
+
 plotMA(resTime)
+
 png("plotMA.png")
 plotMA(resTime)
 dev.off()     
+
 ```
 
-## LFC = 1, Independent Filtering TRUE (by default)
+## LFC = 1
+
+### Day 8 vs Day 0
 
 ```{r restimelfc1}
 resTimelfc1 <- results(dds, 
@@ -194,6 +186,7 @@ summary(resTimelfc1)
 
 
 ```{r plotMAlfc1}
+
 
 plotMA(resTimelfc1)
 
@@ -216,7 +209,7 @@ plotMA(resTimeLfc)
 dev.off()
 ```
 
-## No filtering low expressed, Independent Filtering FALSE
+## No filtering low expressed
 
 ```{r nofilter}
 resTimelnofilter <- results(dds, 
@@ -231,17 +224,16 @@ plotMA(resTimelnofilter)
 dev.off()
 ```
 
+# Visualize selected set of genes
 
-# Visualización de los genes seleccionados
-
-## Transformación de los counts con fines de visualización
+## Transform counts
 
 ```{r vsd}
 vsd <- vst(dds, blind = TRUE)
 ```
 
 
-## Extraemos los genes DGE top 10
+## Get top 10 DE genes
 
 ```{r top10}
 genes <- resTime[order(resTime$pvalue), ] |>
@@ -251,50 +243,37 @@ heatmapData <- assay(vsd)[genes, ]
 ```
 
 
-## Escalamos para visualización
+## Scale counts for visualization
 
 ```{r scale}
 heatmapData <- t(scale(t(heatmapData)))
 ```
 
-## Agregamos anotación
+## Add annotation
 
 ```{r annot}
 heatmapColAnnot <- data.frame(colData(vsd)[, c("Time", "gender")])
 heatmapColAnnot <- HeatmapAnnotation(df = heatmapColAnnot)
 ```
 
-## Graficamos como heatmap
+## Plot as heatmap
 
-```{r heatmapROW, fig.height=6}
+```{r heatmap}
 ComplexHeatmap::Heatmap(heatmapData,
                         top_annotation = heatmapColAnnot,
-                        split = 2,
                         cluster_rows = TRUE, cluster_columns = FALSE)
+
 ```
 
-
-```{r plotheatmaprows}
+```{r plotheatmap}
 png("heatmap1.png", width = 700, height = 500, units = "px")
 ComplexHeatmap::Heatmap(heatmapData,
                         top_annotation = heatmapColAnnot,
-                        split = 2,
-                        cluster_rows = 
-                        TRUE, cluster_columns = FALSE)
+                        cluster_rows = TRUE, cluster_columns = FALSE)
 dev.off()
 ```
 
-```{r heatmapdouble, fig.height=6}
-ComplexHeatmap::Heatmap(heatmapData,
-                        top_annotation = heatmapColAnnot,
-                        split = 2,
-                        cluster_rows = TRUE, 
-                        cluster_columns = TRUE,
-                        column_split = 3)
-
-```
-
-# Guardamos resultados
+# Save results
 
 ```{r results}
 temp <- as.data.frame(resTime)
@@ -312,37 +291,6 @@ write.csv(timeDEgenes, file="data/timeDEgenes.csv")
 ```
 
 
-# Bonus: Extraemos los genes DGE top 100
-
-```{r top100}
-genes <- resTime[order(resTime$pvalue), ] |>
-         head(100) |>
-         rownames()
-heatmapData <- assay(vsd)[genes, ]
-heatmapData <- t(scale(t(heatmapData)))
-heatmapColAnnot <- data.frame(colData(vsd)[, c("Time", "gender")])
-heatmapColAnnot <- HeatmapAnnotation(df = heatmapColAnnot)
-
-ComplexHeatmap::Heatmap(heatmapData,
-                        top_annotation = heatmapColAnnot,
-                        split = 2,
-                        cluster_rows = TRUE, cluster_columns = FALSE)
-timeDEgenes <- rownames(timeDE)
-head(timeDEgenes)
-write.csv(timeDEgenes, file="data/timeDEgenes_top100.csv")
-```
-
-
-
-```{r heatmapdouble100, fig.height=10}
-ComplexHeatmap::Heatmap(heatmapData,
-                        top_annotation = heatmapColAnnot,
-                        split = 2,
-                        cluster_rows = TRUE, 
-                        cluster_columns = TRUE,
-                        column_split = 3)
-
-```
 
 # Session Info
 
